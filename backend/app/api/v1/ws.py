@@ -68,6 +68,7 @@ async def signaling_endpoint(websocket: WebSocket, session_id: str, role: str = 
         db.commit()
     else:
         await manager.connect_viewer(session_id, websocket)
+        await manager.send_to_broadcaster(session_id, {"type": "viewer_connected"})
 
     try:
         while True:
