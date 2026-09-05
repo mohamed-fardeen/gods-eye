@@ -1,0 +1,19 @@
+{
+  "name": "chennai-digital-twin",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "cesium": "^1.124.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-basic-ssl": "^2.3.0",
+    "vite": "^6.2.0",
+    "vite-plugin-static-copy": "^2.2.0"
+  }
+}
