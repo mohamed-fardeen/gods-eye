@@ -100,7 +100,7 @@ export function initMobileCamera() {
       livePanel.style.display = 'block';
 
       // 2. Register Session with Backend
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || '';
+      const backendUrl = (import.meta.env.VITE_BACKEND_URL || '').replace(/\/$/, '');
       const response = await fetch(`${backendUrl}/api/v1/cameras/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -132,7 +132,7 @@ export function initMobileCamera() {
   function connectSignaling(sessionId) {
     // Determine WS protocol based on page protocol
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const baseUrl = import.meta.env.VITE_WS_URL || `${protocol}//${window.location.host}`;
+    const baseUrl = (import.meta.env.VITE_WS_URL || `${protocol}//${window.location.host}`).replace(/\/$/, '');
     const wsUrl = `${baseUrl}/api/v1/ws/signaling/${sessionId}?role=broadcaster`;
     signalingSocket = new WebSocket(wsUrl);
 

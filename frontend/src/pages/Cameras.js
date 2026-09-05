@@ -47,7 +47,7 @@ export function initCameras() {
       activeConnections.length = 0;
       container.innerHTML = '';
 
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || '';
+      const backendUrl = (import.meta.env.VITE_BACKEND_URL || '').replace(/\/$/, '');
       const response = await fetch(`${backendUrl}/api/v1/cameras/sessions`);
       if (!response.ok) throw new Error('Failed to fetch camera sessions');
       const sessions = await response.json();
@@ -92,7 +92,7 @@ export function initCameras() {
 
   function connectToSession(sessionId) {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const baseUrl = import.meta.env.VITE_WS_URL || `${protocol}//${window.location.host}`;
+    const baseUrl = (import.meta.env.VITE_WS_URL || `${protocol}//${window.location.host}`).replace(/\/$/, '');
     const wsUrl = `${baseUrl}/api/v1/ws/signaling/${sessionId}?role=viewer`;
     const ws = new WebSocket(wsUrl);
     const pc = new RTCPeerConnection(iceServers);
