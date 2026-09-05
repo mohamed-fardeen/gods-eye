@@ -104,7 +104,7 @@ export function renderCameraManagement() {
                 <select style="background:transparent; border:1px solid rgba(255,255,255,0.1); color:var(--text-200); font-size:10px; border-radius:4px; padding:4px 8px;">
                   <option>All Zones</option>
                 </select>
-                <button style="background:rgba(59,130,246,0.9); border:none; color:#fff; border-radius:4px; padding:4px 12px; font-size:10px; cursor:pointer; display:flex; align-items:center; gap:4px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Camera</button>
+                <button onclick="window.location.hash='#/mobile-camera'" style="background:rgba(59,130,246,0.9); border:none; color:#fff; border-radius:4px; padding:4px 12px; font-size:10px; cursor:pointer; display:flex; align-items:center; gap:4px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Camera</button>
                 <button style="background:transparent; border:1px solid rgba(255,255,255,0.1); color:var(--text-200); border-radius:4px; padding:4px; cursor:pointer;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>
               </div>
             </div>
