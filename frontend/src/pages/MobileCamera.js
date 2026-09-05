@@ -111,7 +111,7 @@ export function initMobileCamera() {
       
       const data = await response.json();
       currentSessionId = data.session_id;
-      sessionIdDisplay.innerText = \`CAM-\${currentSessionId.substring(0, 4).toUpperCase()}\`;
+      sessionIdDisplay.innerText = `CAM-${currentSessionId.substring(0, 4).toUpperCase()}`;
 
       // 3. Connect to Signaling Server
       connectSignaling(currentSessionId);

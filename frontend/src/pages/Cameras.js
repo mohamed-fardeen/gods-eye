@@ -61,13 +61,13 @@ export function initCameras() {
 
       sessions.forEach(session => {
         const camDiv = document.createElement('div');
-        const shortId = \`CAM-\${session.session_id.substring(0, 4).toUpperCase()}\`;
-        camDiv.innerHTML = \`
+        const shortId = `CAM-${session.session_id.substring(0, 4).toUpperCase()}`;
+        camDiv.innerHTML = `
           <div style="background: rgba(12,17,32,0.9); border: 1px solid rgba(255,255,255,0.07); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column;">
             <div style="padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); background: rgba(0,0,0,0.2);">
               <div style="display: flex; flex-direction: column;">
-                <span style="font-size:12px; font-weight:700; color:#fff;">\${shortId}</span>
-                <span style="font-size:11px; color:var(--text-muted);">\${session.name}</span>
+                <span style="font-size:12px; font-weight:700; color:#fff;">${shortId}</span>
+                <span style="font-size:11px; color:var(--text-muted);">${session.name}</span>
               </div>
               <div style="display:flex; align-items:center; gap:6px;">
                 <div class="status-indicator live"></div>
@@ -75,10 +75,10 @@ export function initCameras() {
               </div>
             </div>
             <div style="aspect-ratio: 16/9; background: rgba(0,0,0,0.8); position: relative;">
-              <video id="video-\${session.session_id}" autoplay muted playsinline style="width: 100%; height: 100%; object-fit: cover;"></video>
+              <video id="video-${session.session_id}" autoplay muted playsinline style="width: 100%; height: 100%; object-fit: cover;"></video>
             </div>
           </div>
-        \`;
+        `;
         container.appendChild(camDiv);
 
         connectToSession(session.session_id);

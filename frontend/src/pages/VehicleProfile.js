@@ -136,13 +136,13 @@ export function renderVehicleProfile() {
             <!-- Timeline line -->
             <div style="position:absolute; left:32px; top:20px; bottom:20px; width:2px; background:rgba(255,255,255,0.05); z-index:1;"></div>
             
-            \${renderHistoryItem(1, 'var(--green)', 'CAM-03', 'Anna Salai Junction', '21 May 2024', '10:32:18 AM', 'Entry', 'var(--green)')}
-            \${renderHistoryItem(2, '#4ade80', 'CAM-05', 'T. Nagar Signal', '21 May 2024', '10:41:07 AM', 'Moving', 'var(--blue)')}
-            \${renderHistoryItem(3, '#65a30d', 'CAM-07', 'Guindy Signal', '21 May 2024', '11:02:33 AM', 'Moving', 'var(--blue)')}
-            \${renderHistoryItem(4, '#84cc16', 'CAM-11', 'Adyar Bridge', '21 May 2024', '11:37:21 AM', 'Moving', 'var(--blue)')}
-            \${renderHistoryItem(5, '#a3e635', 'CAM-15', 'Thiruvanmiyur Junction', '21 May 2024', '12:05:44 PM', 'Moving', 'var(--blue)')}
-            \${renderHistoryItem(6, '#d9f99d', 'CAM-18', 'ECR Road Junction', '21 May 2024', '12:26:10 PM', 'Moving', 'var(--blue)')}
-            \${renderHistoryItem(7, 'var(--red)', 'CAM-21', 'Besant Nagar Beach Rd', '21 May 2024', '12:43:52 PM', 'Exit', 'var(--red)', true)}
+            ${renderHistoryItem(1, 'var(--green)', 'CAM-03', 'Anna Salai Junction', '21 May 2024', '10:32:18 AM', 'Entry', 'var(--green)')}
+            ${renderHistoryItem(2, '#4ade80', 'CAM-05', 'T. Nagar Signal', '21 May 2024', '10:41:07 AM', 'Moving', 'var(--blue)')}
+            ${renderHistoryItem(3, '#65a30d', 'CAM-07', 'Guindy Signal', '21 May 2024', '11:02:33 AM', 'Moving', 'var(--blue)')}
+            ${renderHistoryItem(4, '#84cc16', 'CAM-11', 'Adyar Bridge', '21 May 2024', '11:37:21 AM', 'Moving', 'var(--blue)')}
+            ${renderHistoryItem(5, '#a3e635', 'CAM-15', 'Thiruvanmiyur Junction', '21 May 2024', '12:05:44 PM', 'Moving', 'var(--blue)')}
+            ${renderHistoryItem(6, '#d9f99d', 'CAM-18', 'ECR Road Junction', '21 May 2024', '12:26:10 PM', 'Moving', 'var(--blue)')}
+            ${renderHistoryItem(7, 'var(--red)', 'CAM-21', 'Besant Nagar Beach Rd', '21 May 2024', '12:43:52 PM', 'Exit', 'var(--red)', true)}
           </div>
         </div>
 
