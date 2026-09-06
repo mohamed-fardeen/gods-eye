@@ -32,8 +32,10 @@ import queue
 import re
 import threading
 import time
+import math
+import queue
 from collections import Counter, defaultdict
-from concurrent.futures import Future, ThreadPoolExecutor
+from concurrent.futures import Future, ProcessPoolExecutor
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
@@ -60,12 +62,21 @@ VEHICLE_CLASS_IDS: List[int] = [2, 3, 5, 7]
 # After CONFIDENT_VOTE_COUNT votes converge, OCR stops entirely (early exit).
 OCR_SAMPLE_INTERVAL: int = 5
 
+# Process YOLO only every N frames. ByteTrack will interpolate in-between.
+SKIP_FRAMES: int = 3
+
 # Discard any OCR result below this combined confidence BEFORE adding to votes.
 # Prevents junk reads (distant/blurry/misdetected signs) from polluting voting.
 MIN_ACCEPT_CONFIDENCE: float = 0.30
 
 # Once a track's top plate reaches this many votes → mark as resolved, stop OCR.
 CONFIDENT_VOTE_COUNT: int = 3
+
+# High confidence threshold for aggressive early-exit
+EARLY_EXIT_CONFIDENCE: float = 0.90
+
+# Abandon OCR on a track if we get this many garbage/unreadable results
+UNREADABLE_STRIKES_LIMIT: int = 5
 
 # Pre-OCR heuristic filters on the plate bounding box (pixels).
 # Indian plates are roughly 2:1 to 5:1 width:height.
@@ -130,9 +141,16 @@ def _load_models(
     logger.info("ANPR pipeline: using device %s", _DEVICE)
 
     # ── Vehicle detector (COCO pretrained — no training needed) ──────────────
-    from ultralytics import YOLO
-    _vehicle_model = YOLO(vehicle_model_path)
-    logger.info("Vehicle model loaded: %s", vehicle_model_path)
+    if vehicle_model_path is not None:
+        from ultralytics import YOLO
+        from app.ai.export_model import ensure_yolo_onnx
+        
+        # Automatically export to ONNX for speed
+        if vehicle_model_path.endswith(".pt"):
+            vehicle_model_path = ensure_yolo_onnx(vehicle_model_path)
+            
+        _vehicle_model = YOLO(vehicle_model_path, task='detect')
+        logger.info("Vehicle model loaded: %s", vehicle_model_path)
 
     # ── Plate detector (HuggingFace fine-tuned weights) ───────────────────────
     plate_path = Path(plate_model_file)
@@ -182,6 +200,9 @@ def _load_models(
 
     _models_loaded = True
 
+def _init_worker(plate_repo: str, plate_file: str) -> None:
+    """Initializer for ProcessPoolExecutor workers to load OCR models locally."""
+    _load_models(vehicle_model_path=None, plate_model_repo=plate_repo, plate_model_file=plate_file)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # OCR helpers
@@ -352,6 +373,8 @@ class TrackState:
     plate_confidences: Dict[str, List[float]] = field(default_factory=dict)
     frames_seen: int = 0
     alerted: bool = False
+    ocr_locked: bool = False
+    unreadable_strikes: int = 0
 
     def add_reading(self, plate: str, conf: float) -> None:
         if plate:
@@ -377,7 +400,9 @@ class TrackState:
         return best, sum(confs) / len(confs)
 
     def is_confidently_resolved(self) -> bool:
-        """True once the top plate has ≥ CONFIDENT_VOTE_COUNT consistent votes."""
+        """True once the top plate has ≥ CONFIDENT_VOTE_COUNT consistent votes, or early exit locked."""
+        if self.ocr_locked:
+            return True
         if not self.plate_votes:
             return False
         _, top_count = self.plate_votes.most_common(1)[0]
@@ -461,11 +486,35 @@ def _capture_thread_fn(
         logger.error("Cannot open video source: %s", source)
         return
 
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    if not fps or fps <= 0 or math.isinf(fps):
+        fps = 30.0
+    frame_delay = 1.0 / fps
+
     while not stop_event.is_set():
+        start_t = time.time()
+        
         ok, frame = cap.read()
         if not ok:
             break
-        frame_queue.put(frame)  # blocks when full → natural backpressure
+        
+        # Non-blocking, frame-dropping behavior for real-time compliance
+        try:
+            frame_queue.put_nowait(frame)
+        except queue.Full:
+            try:
+                frame_queue.get_nowait()  # Drop the oldest frame
+            except queue.Empty:
+                pass
+            try:
+                frame_queue.put_nowait(frame) # Put the new frame
+            except queue.Full:
+                pass
+                
+        # Simulate real-time stream if reading from a fast local video file
+        elapsed = time.time() - start_t
+        if elapsed < frame_delay:
+            time.sleep(frame_delay - elapsed)
 
     frame_queue.put(None)  # sentinel: real end of stream
     cap.release()
@@ -563,6 +612,7 @@ class ANPRPipeline:
         vehicle_model_path: str = "yolov8n.pt",
         plate_model_repo: str = "Koushim/yolov8-license-plate-detection",
         plate_model_file: str = "best.pt",
+        show_preview: bool = False,
     ) -> None:
         self.camera_id = camera_id
         self.watchlist = watchlist or Watchlist()
@@ -570,6 +620,7 @@ class ANPRPipeline:
         self._vehicle_model_path = vehicle_model_path
         self._plate_model_repo = plate_model_repo
         self._plate_model_file = plate_model_file
+        self.show_preview = show_preview
 
         # Callbacks — set before calling start()
         self.on_alert: Optional[Callable[[AlertEvent], None]] = None
@@ -657,7 +708,12 @@ class ANPRPipeline:
         except Exception:
             pass
 
-        ocr_executor = ThreadPoolExecutor(max_workers=OCR_WORKER_THREADS)
+        # Use ProcessPoolExecutor to bypass GIL
+        ocr_executor = ProcessPoolExecutor(
+            max_workers=OCR_WORKER_THREADS,
+            initializer=_init_worker,
+            initargs=(self._plate_model_repo, self._plate_model_file)
+        )
         pending_futures: Dict[int, Future] = {}  # track_id → in-flight OCR future
         track_states: Dict[int, TrackState] = defaultdict(TrackState)
         frame_idx = 0
@@ -687,6 +743,9 @@ class ANPRPipeline:
             self._stop_event.set()
             ocr_executor.shutdown(wait=True)
             self._running = False
+            if self.show_preview:
+                import cv2
+                cv2.destroyAllWindows()
             logger.info(
                 "Pipeline finished for %s after %d frames", self.camera_id, frame_idx
             )
@@ -720,30 +779,50 @@ class ANPRPipeline:
             if fut.done():
                 try:
                     plate, conf = fut.result()
+                    state = track_states[tid]
+                    
                     if plate and conf >= MIN_ACCEPT_CONFIDENCE:
-                        track_states[tid].add_reading(plate, conf)
+                        state.add_reading(plate, conf)
                         logger.debug(
                             "[frame %d] CAM=%s TID=%d OCR: %s (%.0f%%)",
                             frame_idx, self.camera_id, tid, plate, conf * 100,
                         )
+                        # Aggressive early exit if confidence is very high
+                        if conf >= EARLY_EXIT_CONFIDENCE:
+                            state.ocr_locked = True
+                            logger.info("TID=%d: OCR locked by high confidence (%.2f)", tid, conf)
+                    else:
+                        state.unreadable_strikes += 1
+                        if state.unreadable_strikes >= UNREADABLE_STRIKES_LIMIT:
+                            state.ocr_locked = True
+                            logger.info("TID=%d: OCR locked by unreadable strikes", tid)
+                            
                 except Exception as exc:
                     logger.debug("OCR future error TID=%d: %s", tid, exc)
                 del pending_futures[tid]
 
-        # ── Step 2: vehicle detection + tracking ──────────────────────────────
-        results = _vehicle_model.track(
-            frame,
-            persist=True,
-            classes=VEHICLE_CLASS_IDS,
-            verbose=False,
-            device=_DEVICE,
-        )
+        # ── Step 2: vehicle detection + tracking (with Frame Skipping) ────────
+        if frame_idx % SKIP_FRAMES == 0 or not hasattr(self, "_last_boxes"):
+            results = _vehicle_model.track(
+                frame,
+                persist=True,
+                classes=VEHICLE_CLASS_IDS,
+                verbose=False,
+                device=_DEVICE,
+            )
+            if results[0].boxes.id is not None:
+                self._last_boxes = results[0].boxes.xyxy.cpu().numpy()
+                self._last_ids = results[0].boxes.id.cpu().numpy().astype(int)
+            else:
+                self._last_boxes = np.array([])
+                self._last_ids = np.array([])
 
-        if results[0].boxes.id is None:
+        boxes = self._last_boxes
+        track_ids = self._last_ids
+
+        if len(boxes) == 0:
             return  # no tracks this frame
 
-        boxes = results[0].boxes.xyxy.cpu().numpy()
-        track_ids = results[0].boxes.id.cpu().numpy().astype(int)
         timestamp = time.time()
 
         for box, tid in zip(boxes, track_ids):
@@ -756,7 +835,7 @@ class ANPRPipeline:
             needs_ocr = (
                 state.frames_seen % OCR_SAMPLE_INTERVAL == 0
                 and tid not in pending_futures
-                and not state.is_confidently_resolved()
+                and not state.ocr_locked
             )
             if needs_ocr:
                 crop = frame[max(0, y1):y2, max(0, x1):x2].copy()
@@ -813,6 +892,29 @@ class ANPRPipeline:
                         except Exception:
                             pass
 
+        if self.show_preview:
+            import cv2
+            preview_frame = frame.copy()
+            for box, tid in zip(boxes, track_ids):
+                x1, y1, x2, y2 = map(int, box)
+                state = track_states[tid]
+                resolved_plate, plate_conf = state.resolved_plate()
+                
+                label = f"ID:{tid}"
+                color = (0, 255, 0)
+                if resolved_plate:
+                    label += f" {resolved_plate} ({plate_conf*100:.0f}%)"
+                    if state.alerted:
+                        color = (0, 0, 255) # Red for alert
+                elif state.ocr_locked:
+                    label += " (locked)"
+                
+                cv2.rectangle(preview_frame, (x1, y1), (x2, y2), color, 2)
+                cv2.putText(preview_frame, label, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+                
+            cv2.imshow(f"ANPR Preview - {self.camera_id}", preview_frame)
+            cv2.waitKey(1)
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Standalone test entry point
@@ -834,6 +936,7 @@ if __name__ == "__main__":
     parser.add_argument("--watchlist", nargs="*", metavar="PLATE",
                         help="Plates to add to watchlist for testing")
     parser.add_argument("--output", default=None, help="Optional annotated output video path")
+    parser.add_argument("--show", action="store_true", help="Show real-time annotated video stream")
     args = parser.parse_args()
 
     source: Any = int(args.source) if args.source.isdigit() else args.source
@@ -846,7 +949,7 @@ if __name__ == "__main__":
     alerts_collected: List[Dict] = []
     detections_collected: List[Dict] = []
 
-    pipeline = ANPRPipeline(camera_id=args.camera_id, watchlist=wl)
+    pipeline = ANPRPipeline(camera_id=args.camera_id, watchlist=wl, show_preview=args.show)
     pipeline.on_alert = lambda evt: (
         alerts_collected.append(evt.to_dict()),
         print("ALERT:", json.dumps(evt.to_dict(), indent=2))

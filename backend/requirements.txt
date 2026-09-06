@@ -38,3 +38,6 @@ networkx>=3.3               # Road transition graph + gap inference
 
 # ── Real-time ─────────────────────────────────────────────────────────────────
 websockets>=12.0
+onnx
+onnxruntime
+onnxruntime-gpu
