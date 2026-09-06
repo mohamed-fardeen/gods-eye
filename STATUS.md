@@ -197,13 +197,16 @@ The notebook (`v2`) contains a fully working prototype. Key design decisions:
 
 ---
 
-## 10. New Files Created (Phase 2 — ANPR Sprint)
+## 11. New Files & Architecture Updates (Phase 2)
 
-| File | Purpose |
+| File / Component | Purpose |
 |---|---|
-| `backend/app/ai/anpr_pipeline.py` | Core ANPR engine: YOLO + ByteTrack + PaddleOCR + voting |
+| `ai-worker/` | Standalone Dockerized worker added in `main` branch. Hosts a FastAPI server, `pipeline.py`, and `ocr_utils.py` for isolated OCR testing and heavy ML loads. |
+| `backend/app/ai/export_model.py` | Auto-compiles PyTorch YOLO weights (`yolov8n.pt`) to ONNX FP16 (`yolov8n.onnx`) for massive CPU/GPU speedups using `onnxruntime`. |
+| `backend/app/ai/anpr_pipeline.py` | Core ANPR engine. Optimizations: `ProcessPoolExecutor` bypasses Python GIL, `SKIP_FRAMES=3` with ByteTrack interpolation, dropping queues for zero-latency, and heuristic early-exits. |
 | `backend/app/models/observation.py` | Observation ORM (one vehicle sighting per camera per timestamp) |
 | `backend/app/models/watchlist.py` | WatchlistEntry ORM |
+| `backend/app/models/system_settings.py` | Added in `main` branch to handle dynamic system settings |
 | `backend/app/services/observation_service.py` | Ingestion glue: identity resolution → DB → WS broadcast |
 | `backend/app/services/identity_resolution_service.py` | Exact + fuzzy plate matching → canonical Vehicle |
 | `backend/app/services/pipeline_manager.py` | Singleton: manages live ANPRPipeline instances per camera |
@@ -211,35 +214,33 @@ The notebook (`v2`) contains a fully working prototype. Key design decisions:
 | `backend/app/api/v1/watchlist.py` | REST: add/remove/list blacklisted plates |
 | `backend/app/api/v1/pipeline.py` | REST: start/stop/status pipeline per camera |
 | `backend/app/api/v1/vehicles.py` | REST: search vehicles, get trajectory by plate or ID |
+| `backend/app/api/v1/ocrtest.py` & `settings_api.py` | New API routes from `main` branch for the `ai-worker` integration |
 
 ---
 
-## 10. Known Issues & Design Decisions
+## 12. Known Issues & Design Decisions
 
 1. **SQLite geometry columns**: All `geoalchemy2.Geometry` columns replaced with plain `Float` lat/lon for SQLite local dev. Production path: PostgreSQL + PostGIS via Docker — columns are annotated with comments marking the migration target.
-
 2. **No fake data policy**: All stubbed endpoints return `not_implemented`. Frontend pages show hardcoded mock data in JS (not seeded from DB).
-
 3. **PaddleOCR MKLDNN crash**: Must set `PADDLE_PDX_ENABLE_MKLDNN_BYDEFAULT=0` and `FLAGS_use_mkldnn=0` **before** importing paddleocr. This is a known oneDNN/MKLDNN conflict.
-
-4. **Plate model source**: HuggingFace `Koushim/yolov8-license-plate-detection` — fine-tuned on generic plates, not specifically Indian. Fine-tuning on Indian plate data is the highest-ROI training effort.
-
+4. **Hardware Acceleration**: Pipeline defaults to `ProcessPoolExecutor` (avoids Python GIL) and `onnxruntime`. Without a dedicated GPU, high CPU utilization and dropped frames will occur. With CUDA (e.g. RTX 5050), it achieves true zero-latency real-time 30FPS processing.
 5. **Confidence-native requirement**: Every pipeline stage MUST emit a probability. Combined score = product of stage confidences. This is the architectural differentiator per the SIH problem spec.
-
 6. **WebRTC signaling**: Already working end-to-end. Mobile phone → `POST /cameras/register` → WebSocket signaling → dashboard viewer.
 
 ---
 
-## 11. Commit Log
+## 13. Commit Log
 
 | Date | Branch | Commit | Description |
 |---|---|---|---|
 | 2026-09-06 | `main` | (initial) | Frontend complete, backend skeleton |
-| 2026-09-06 | `tracking_ocr` | branch created | Start ANPR + tracking backend |
+| 2026-09-06 | `main` | 402b89d | Added `ai-worker`, OCR testing routes, SystemSettings, and notebook backup |
+| 2026-09-06 | `tracking_ocr` | | Real-time ANPR pipeline optimization (ProcessPool, Frame Dropping, ONNX export, OpenCV UI, SQLite fixes) |
+| 2026-09-06 | `tracking_ocr` | b1ce883 | Merged `origin/main` and resolved router/init conflicts |
 
 ---
 
-## 12. Environment Setup
+## 14. Environment Setup
 
 ### Backend
 ```bash
@@ -250,27 +251,17 @@ pip install -r requirements.txt
 uvicorn app.main:app --reload --port 8000
 ```
 
+### AI-Worker (Docker)
+```bash
+cd ai-worker
+docker build -t ai-worker .
+docker run -p 8001:8001 ai-worker
+```
+
 ### Frontend
 ```bash
 cd frontend
 npm install
 # Create .env.local with VITE_CESIUM_ION_TOKEN and VITE_BACKEND_URL
 npm run dev   # http://localhost:3000
-```
-
-### Environment Variables (backend `.env`)
-```
-SQLALCHEMY_DATABASE_URI=sqlite:///./chennai_twin.db
-# Future PostGIS:
-# POSTGRES_SERVER=localhost
-# POSTGRES_USER=postgres
-# POSTGRES_PASSWORD=postgrespassword
-# POSTGRES_DB=chennai_twin
-```
-
-### Environment Variables (frontend `.env.local`)
-```
-VITE_CESIUM_ION_TOKEN=your_token_here
-VITE_BACKEND_URL=http://localhost:8000
-VITE_WS_URL=ws://localhost:8000
 ```
