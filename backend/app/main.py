@@ -89,6 +89,16 @@ async def startup_event():
     except Exception as exc:
         logger.error("Failed to wire pipeline manager: %s", exc)
 
+    # ── 4. Initialize Road Transition Graph ───────────────────────────────────
+    try:
+        from app.services.transition_graph import graph_service
+        logger.info("Initializing Road Transition Graph (OSMNx)...")
+        # Run in executor to not block the asyncio event loop startup for too long
+        loop = asyncio.get_event_loop()
+        await loop.run_in_executor(None, graph_service.load_graph)
+    except Exception as exc:
+        logger.error("Failed to initialize Road Transition Graph: %s", exc)
+
     logger.info("%s ready. API docs: http://localhost:8000/docs", settings.PROJECT_NAME)
 
 

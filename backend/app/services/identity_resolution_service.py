@@ -19,6 +19,7 @@ ANPR pipeline event arrives.
 from __future__ import annotations
 
 import logging
+from datetime import datetime
 from typing import Optional, Tuple
 
 from sqlalchemy.orm import Session
@@ -55,17 +56,13 @@ def resolve_vehicle(
     db: Session,
     plate_text: str,
     combined_confidence: float,
+    camera_id: Optional[str] = None,
+    observed_at: Optional[datetime] = None,
     vehicle_type: Optional[str] = None,
 ) -> Tuple[Vehicle, float]:
     """
     Resolve a plate text to a canonical Vehicle record.
-
-    Returns:
-        (vehicle, resolved_confidence)
-        resolved_confidence = combined_confidence × match_factor
-          where match_factor = 1.0 for exact, fuzzy_score/100 for fuzzy.
-
-    Side effects: may INSERT a new Vehicle row if no match found.
+    Includes spatial-temporal graph validation for fuzzy matches.
     """
     if not plate_text or plate_text == "UNKNOWN":
         return _create_vehicle(db, plate_text=None, vehicle_type=vehicle_type), 0.0
@@ -81,9 +78,6 @@ def resolve_vehicle(
         return existing, combined_confidence * 1.0
 
     # ── 2. Fuzzy match ────────────────────────────────────────────────────────
-    # Load all known plates and find best fuzzy match.
-    # In a large deployment this should be cached in Redis or use a DB trigram
-    # index (PostgreSQL pg_trgm). For the prototype scope this is fine.
     all_vehicles = db.query(Vehicle).filter(
         Vehicle.license_plate.isnot(None)
     ).all()
@@ -100,13 +94,41 @@ def resolve_vehicle(
             best_vehicle = vehicle
 
     if best_score >= FUZZY_MATCH_THRESHOLD and best_vehicle is not None:
-        match_factor = best_score / 100.0
-        resolved_confidence = combined_confidence * match_factor
-        logger.info(
-            "Identity: fuzzy match %s → Vehicle#%d (score=%.0f, resolved_conf=%.3f)",
-            norm_plate, best_vehicle.id, best_score, resolved_confidence,
-        )
-        return best_vehicle, resolved_confidence
+        # Spatial-Temporal Validation
+        transition_possible = True
+        
+        if camera_id and observed_at and best_vehicle.id:
+            # We need the last observation of this vehicle
+            from app.models.observation import Observation
+            from app.models.camera import Camera
+            from app.services.transition_graph import graph_service
+            
+            last_obs = db.query(Observation).filter(Observation.vehicle_id == best_vehicle.id)\
+                .order_by(Observation.observed_at.desc()).first()
+                
+            if last_obs and last_obs.camera_id != camera_id:
+                # Find camera locations
+                prev_cam = db.query(Camera).filter(Camera.name == last_obs.camera_id).first()
+                curr_cam = db.query(Camera).filter(Camera.name == camera_id).first()
+                
+                if prev_cam and prev_cam.latitude and prev_cam.longitude and curr_cam and curr_cam.latitude and curr_cam.longitude:
+                    time_diff = (observed_at - last_obs.observed_at).total_seconds()
+                    transition_possible = graph_service.is_transition_possible(
+                        prev_cam.latitude, prev_cam.longitude,
+                        curr_cam.latitude, curr_cam.longitude,
+                        time_diff
+                    )
+
+        if transition_possible:
+            match_factor = best_score / 100.0
+            resolved_confidence = combined_confidence * match_factor
+            logger.info(
+                "Identity: fuzzy match %s → Vehicle#%d (score=%.0f, resolved_conf=%.3f)",
+                norm_plate, best_vehicle.id, best_score, resolved_confidence,
+            )
+            return best_vehicle, resolved_confidence
+        else:
+            logger.warning("Identity: fuzzy match %s → Vehicle#%d REJECTED by transition graph.", norm_plate, best_vehicle.id)
 
     # ── 3. New vehicle ────────────────────────────────────────────────────────
     new_vehicle = _create_vehicle(db, plate_text=norm_plate, vehicle_type=vehicle_type)

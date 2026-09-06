@@ -81,6 +81,8 @@ def ingest_detection(
             db,
             plate_text=plate_text,
             combined_confidence=combined_confidence or 0.0,
+            camera_id=camera_id,
+            observed_at=observed_at,
         )
 
     # ── 2. Persist Observation ────────────────────────────────────────────────
@@ -204,8 +206,11 @@ def get_trajectory(
         else:
             return []
 
-    observations = (
-        db.query(Observation)
+    # Join with Camera to get coordinates
+    from app.models.camera import Camera
+    observations_with_camera = (
+        db.query(Observation, Camera)
+        .outerjoin(Camera, Observation.camera_id == Camera.name)
         .filter(Observation.vehicle_id == vehicle.id)
         .order_by(Observation.observed_at.asc())
         .limit(limit)
@@ -222,8 +227,10 @@ def get_trajectory(
             "bbox": [o.bbox_x1, o.bbox_y1, o.bbox_x2, o.bbox_y2],
             "observed_at": o.observed_at.isoformat() if o.observed_at else None,
             "frame_idx": o.frame_idx,
+            "lat": c.latitude if c else None,
+            "lon": c.longitude if c else None,
         }
-        for o in observations
+        for o, c in observations_with_camera
     ]
 
 
