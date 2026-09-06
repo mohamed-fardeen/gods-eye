@@ -25,16 +25,16 @@ export async function initViewer(containerId = "cesiumContainer") {
     );
   }
 
-  // Define Chennai bounding box
-  const chennaiBounds = Cesium.Rectangle.fromDegrees(
-    CHENNAI_GEOGRAPHY.bounds.west,
-    CHENNAI_GEOGRAPHY.bounds.south,
-    CHENNAI_GEOGRAPHY.bounds.east,
-    CHENNAI_GEOGRAPHY.bounds.north
+  // Define India bounding box (approximate)
+  const indiaBounds = Cesium.Rectangle.fromDegrees(
+    68.1, // west
+    6.5,  // south
+    97.4, // east
+    35.5  // north
   );
 
   // Set Cesium default view so internal setup never defaults to outer space / whole earth
-  Cesium.Camera.DEFAULT_VIEW_RECTANGLE = chennaiBounds;
+  Cesium.Camera.DEFAULT_VIEW_RECTANGLE = indiaBounds;
   Cesium.Camera.DEFAULT_VIEW_FACTOR = 0;
 
   // Base imagery layer (clipped to Chennai rectangle)
@@ -44,10 +44,8 @@ export async function initViewer(containerId = "cesiumContainer") {
       const ionProvider = await Cesium.createWorldImageryAsync({
         style: Cesium.IonWorldImageryStyle.AERIAL_WITH_LABELS,
       });
-      baseLayer = new Cesium.ImageryLayer(ionProvider, {
-        rectangle: chennaiBounds,
-      });
-      console.log("[Cesium] Loaded Cesium Ion world aerial imagery (clipped to Chennai).");
+      baseLayer = new Cesium.ImageryLayer(ionProvider);
+      console.log("[Cesium] Loaded Cesium Ion world aerial imagery.");
     } catch (err) {
       console.warn("[Cesium] Could not load Ion world imagery, falling back to OSM tiles:", err);
     }
@@ -56,8 +54,7 @@ export async function initViewer(containerId = "cesiumContainer") {
   if (!baseLayer) {
     baseLayer = new Cesium.ImageryLayer(
       new Cesium.OpenStreetMapImageryProvider({
-        url: "https://tile.openstreetmap.org/",
-        rectangle: chennaiBounds,
+        url: "https://tile.openstreetmap.org/"
       })
     );
   }
@@ -84,16 +81,13 @@ export async function initViewer(containerId = "cesiumContainer") {
     maximumScreenSpaceError: 16,       // Base terrain/imagery LOD
   });
 
-  // Strip the globe down strictly to Chennai:
-  // Culls every tile outside Chennai, avoiding world-wide quadtree downloads
-  viewer.scene.globe.cartographicLimitRectangle = chennaiBounds;
+  // Allow global viewing (removed cartographic limit)
 
   // Immediately set camera view to Chennai before the first frame is painted
   flyToInitialPosition(viewer, false);
 
-  // Restrict camera zoom so user stays within Chennai digital twin scope
   const controller = viewer.scene.screenSpaceCameraController;
-  controller.maximumZoomDistance = 45000; // max 45km altitude
+  controller.maximumZoomDistance = 5000000; // max 5000km altitude
   controller.minimumZoomDistance = 30;    // min 30m altitude
 
   // Performance: Lower resolution slightly for integrated/low-end GPUs

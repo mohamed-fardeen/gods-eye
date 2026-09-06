@@ -366,11 +366,17 @@ export function initDashboardMap() {
     if(res.ok) return res.json();
     return [];
   }).then(sessions => {
+    let centered = false;
     sessions.forEach(session => {
       if (session.latitude && session.longitude) {
         L.marker([session.latitude, session.longitude], { icon: camIcon })
           .addTo(map)
           .bindPopup(`<b>CAM-${session.session_id.substring(0, 4).toUpperCase()}</b><br>Live Stream`);
+          
+        if (!centered) {
+          map.setView([session.latitude, session.longitude], 13);
+          centered = true;
+        }
       }
     });
   }).catch(e => console.error("Failed to load cameras for dashboard map", e));

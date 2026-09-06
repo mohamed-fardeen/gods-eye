@@ -255,6 +255,7 @@ export async function initMapOverlayEvents(viewer, layerManager) {
     const response = await fetch(`${backendUrl}/api/v1/cameras/sessions`);
     if (response.ok) {
       const sessions = await response.json();
+      let centered = false;
       sessions.forEach(session => {
         if (session.latitude && session.longitude) {
           viewer.entities.add({
@@ -276,6 +277,19 @@ export async function initMapOverlayEvents(viewer, layerManager) {
               pixelOffset: new Cesium.Cartesian2(0, 10),
             }
           });
+          
+          if (!centered) {
+            viewer.camera.flyTo({
+              destination: Cesium.Cartesian3.fromDegrees(session.longitude, session.latitude, 2000),
+              orientation: {
+                heading: Cesium.Math.toRadians(0.0),
+                pitch: Cesium.Math.toRadians(-45.0),
+                roll: 0.0
+              },
+              duration: 2.0
+            });
+            centered = true;
+          }
         }
       });
     }
