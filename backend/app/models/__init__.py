@@ -8,3 +8,5 @@ from app.models.traffic import TrafficRecord
 from app.models.infrastructure import Building, Road
 from app.models.detection import Detection
 from app.models.event import Event
+from app.models.observation import Observation
+from app.models.watchlist import WatchlistEntry

@@ -105,17 +105,87 @@ async def signaling_endpoint(websocket: WebSocket, session_id: str, role: str = 
             manager.disconnect_viewer(session_id, websocket)
 
 
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Dashboard Event Broadcaster
+# ─────────────────────────────────────────────────────────────────────────────
+
+class DashboardManager:
+    """
+    Manages all connected dashboard WebSocket clients.
+    Events (vehicle detections, watchlist alerts, trajectory updates) are
+    pushed here from the ANPRPipeline callbacks running in background threads.
+
+    broadcast() is an async coroutine, called via asyncio.run_coroutine_threadsafe
+    from the pipeline_manager when running outside the event loop.
+    """
+
+    def __init__(self) -> None:
+        self._clients: list[WebSocket] = []
+
+    async def connect(self, ws: WebSocket) -> None:
+        await ws.accept()
+        self._clients.append(ws)
+
+    def disconnect(self, ws: WebSocket) -> None:
+        try:
+            self._clients.remove(ws)
+        except ValueError:
+            pass
+
+    async def broadcast(self, event: dict) -> None:
+        """Send event to all connected dashboard clients."""
+        dead = []
+        for ws in list(self._clients):
+            try:
+                await ws.send_json(event)
+            except Exception:
+                dead.append(ws)
+        for ws in dead:
+            self.disconnect(ws)
+
+    @property
+    def client_count(self) -> int:
+        return len(self._clients)
+
+
+dashboard_manager = DashboardManager()
+
+
 @router.websocket("/events")
 async def websocket_events(websocket: WebSocket):
-    await websocket.accept()
+    """
+    Live event stream for the God's Eye dashboard.
+
+    Clients connect here and receive a continuous stream of JSON events:
+      - VEHICLE_DETECTED  — every ANPR detection with plate + confidence
+      - WATCHLIST_ALERT   — high-priority, when a watchlist plate is spotted
+      - SYSTEM            — heartbeat and status messages
+
+    The pipeline_manager (running in background threads) calls
+    dashboard_manager.broadcast() via asyncio.run_coroutine_threadsafe().
+    """
+    import asyncio
+
+    await dashboard_manager.connect(websocket)
     try:
+        # Send initial handshake
         await websocket.send_json({
-            "status": "not_implemented",
-            "phase": "2",
-            "message": "Real-time streaming over WebSocket is reserved for Phase 2."
+            "event_type": "SYSTEM",
+            "message": "Connected to God's Eye live event stream",
+            "client_count": dashboard_manager.client_count,
         })
+
+        # Keep connection alive; the server pushes events, client just listens.
+        # A ping/pong every 30s prevents proxy timeout.
         while True:
-            data = await websocket.receive_text()
-            await websocket.send_text(f"Echo (Phase 1): {data}")
+            try:
+                # Wait for any message (ping) from client or timeout
+                await asyncio.wait_for(websocket.receive_text(), timeout=30.0)
+            except asyncio.TimeoutError:
+                # Send heartbeat
+                await websocket.send_json({"event_type": "HEARTBEAT"})
     except WebSocketDisconnect:
         pass
+    finally:
+        dashboard_manager.disconnect(websocket)

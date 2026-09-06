@@ -1,5 +1,4 @@
 from sqlalchemy import Column, Integer, String, Float
-from geoalchemy2 import Geometry
 from app.models.base import Base
 
 class Building(Base):
@@ -8,7 +7,8 @@ class Building(Base):
     id = Column(Integer, primary_key=True, index=True)
     osm_id = Column(String, index=True, nullable=True)
     name = Column(String, nullable=True)
-    geometry = Column(Geometry(geometry_type='POLYGON', srid=4326))
+    # GeoJSON/WKT string for SQLite; use PostGIS Geometry in production
+    geometry_wkt = Column(String, nullable=True)
     height = Column(Float, nullable=True)
 
 class Road(Base):
@@ -18,4 +18,9 @@ class Road(Base):
     osm_id = Column(String, index=True, nullable=True)
     name = Column(String, nullable=True)
     type = Column(String, nullable=True) # e.g. motorway, primary
-    geometry = Column(Geometry(geometry_type='LINESTRING', srid=4326))
+    # GeoJSON/WKT string for SQLite; use PostGIS Geometry in production
+    geometry_wkt = Column(String, nullable=True)
+    # For road transition graph: store camera-pair travel times
+    min_travel_time_s = Column(Float, nullable=True)
+    max_travel_time_s = Column(Float, nullable=True)
+
