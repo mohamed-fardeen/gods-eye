@@ -72,24 +72,48 @@ export function initMobileCamera() {
       { urls: 'stun:stun.l.google.com:19302' }
     ]
   };
+  
+  // Auto-fetch location on load
+  let currentLat = null;
+  let currentLng = null;
+  let locationStatus = 'pending'; // pending, success, failed
 
-  btnLocation.addEventListener('click', () => {
+  function fetchLocation() {
     if (navigator.geolocation) {
+      document.getElementById('location-display').innerText = 'Fetching GPS...';
       navigator.geolocation.getCurrentPosition(
         (pos) => {
-          document.getElementById('location-display').innerText = `Lat: ${pos.coords.latitude.toFixed(4)}, Lng: ${pos.coords.longitude.toFixed(4)}`;
+          currentLat = pos.coords.latitude;
+          currentLng = pos.coords.longitude;
+          locationStatus = 'success';
+          document.getElementById('location-display').innerText = `Lat: ${currentLat.toFixed(4)}, Lng: ${currentLng.toFixed(4)}`;
         },
         (err) => {
-          alert('Geolocation permission denied or unavailable.');
-        }
+          locationStatus = 'failed';
+          document.getElementById('location-display').innerText = 'GPS access denied/failed';
+          console.warn('Geolocation error:', err);
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
       );
     } else {
-      alert('Geolocation is not supported by this browser.');
+      locationStatus = 'failed';
+      document.getElementById('location-display').innerText = 'GPS not supported';
     }
+  }
+
+  fetchLocation();
+
+  btnLocation.addEventListener('click', () => {
+    fetchLocation();
   });
 
   btnStart.addEventListener('click', async () => {
     const camName = document.getElementById('mobile-cam-name').value || 'Mobile Camera';
+    
+    if (locationStatus === 'pending') {
+      alert("Please wait for GPS location to be fetched, or ensure location permissions are granted.");
+      return;
+    }
     
     try {
       // 1. Get Camera Permission & Stream
@@ -101,15 +125,9 @@ export function initMobileCamera() {
 
       // 2. Register Session with Backend
       const backendUrl = (import.meta.env.VITE_BACKEND_URL || '').replace(/\/$/, '');
-      // Parse location if available
-      let lat = null;
-      let lng = null;
-      const locText = document.getElementById('location-display').innerText;
-      if (locText.includes('Lat:')) {
-        const parts = locText.split(',');
-        lat = parseFloat(parts[0].replace('Lat:', '').trim());
-        lng = parseFloat(parts[1].replace('Lng:', '').trim());
-      }
+      // Use the fetched coordinates directly
+      let lat = currentLat;
+      let lng = currentLng;
 
       const response = await fetch(`${backendUrl}/api/v1/cameras/register`, {
         method: 'POST',
