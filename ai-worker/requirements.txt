@@ -1,0 +1,11 @@
+fastapi[standard]>=0.110.0
+uvicorn>=0.29.0
+python-multipart>=0.0.9
+ultralytics>=8.1.0
+supervision>=0.18.0
+huggingface_hub>=0.20.0
+paddleocr>=2.7.3
+paddlepaddle-gpu>=2.6.0
+opencv-python-headless>=4.9.0
+pydantic>=2.6.0
+numpy<2.0.0

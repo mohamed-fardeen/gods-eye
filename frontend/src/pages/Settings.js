@@ -16,6 +16,30 @@ export function renderSettings() {
         </div>
       </div>
 
+      <!-- AI Inference Worker -->
+      <div class="panel" style="border:1px solid var(--blue);">
+        <div class="panel-hdr" style="background:rgba(59, 130, 246, 0.1);"><span class="panel-title">AI Inference Worker</span></div>
+        <div class="panel-body">
+          <div style="margin-bottom: 12px;">
+            <label style="font-size:12px;color:var(--text-muted);display:block;margin-bottom:4px;">Inference Mode</label>
+            <select id="ai-worker-mode" class="select-input" style="width:100%;">
+              <option value="LOCAL">LOCAL (Docker AI Worker)</option>
+              <option value="REMOTE">REMOTE (GPU Provider)</option>
+            </select>
+          </div>
+          <div style="margin-bottom: 12px;">
+            <label style="font-size:12px;color:var(--text-muted);display:block;margin-bottom:4px;">AI Worker URL</label>
+            <input id="ai-worker-url" type="text" class="search-input" style="width:100%;" placeholder="http://ai-worker:8001">
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div id="ai-worker-status" style="font-size:12px;display:flex;flex-direction:column;gap:4px;">
+              <div>Status: <span style="color:var(--amber);">Checking...</span></div>
+            </div>
+            <button id="ai-worker-save" class="btn btn-primary" style="padding:4px 12px;font-size:12px;">Save & Apply</button>
+          </div>
+        </div>
+      </div>
+
       <!-- Cesium Map Engine -->
       <div class="panel">
         <div class="panel-hdr"><span class="panel-title">Map Engine (Cesium)</span></div>
@@ -29,30 +53,6 @@ export function renderSettings() {
         </div>
       </div>
 
-      <!-- System Services -->
-      <div class="panel">
-        <div class="panel-hdr"><span class="panel-title">System Services</span></div>
-        <div class="panel-body" style="padding:8px 14px;">
-          ${[
-            ['CesiumJS 3D Map Engine','Operational','green'],
-            ['Vite Dev Server','Running','green'],
-            ['OSM Building Tiles','Connected','green'],
-            ['Overpass Road API','Connected','green'],
-            ['AI Detection Engine','Pending','amber'],
-            ['ANPR System','Pending','amber'],
-            ['Real-time Video Streams','Pending','amber'],
-            ['Incident Alert System','Pending','amber'],
-          ].map(([name, status, color]) => `
-          <div class="sys-row">
-            <div class="sys-dot ${color==='green'?'on':'off'}" style="${color==='amber'?'background:var(--amber);box-shadow:0 0 6px var(--amber);':''}"></div>
-            <div class="sys-info">
-              <div class="sys-name">${name}</div>
-              <div class="sys-status-text ${color==='green'?'on':''}" style="${color==='amber'?'color:var(--amber);':''};">${status}</div>
-            </div>
-          </div>`).join('')}
-        </div>
-      </div>
-
       <!-- Developer Notes -->
       <div class="panel">
         <div class="panel-hdr"><span class="panel-title">Developer Notes</span></div>
@@ -60,19 +60,11 @@ export function renderSettings() {
           <div style="font-size:12px;color:var(--text-dim);line-height:1.8;">
             <div style="display:flex;gap:8px;align-items:flex-start;padding:6px 0;border-bottom:1px solid var(--border);">
               <span style="color:var(--green);margin-top:2px;">●</span>
-              <span><strong style="color:var(--text-100);">Spatial Foundation:</strong> Interactive 3D map with OSM buildings, road network, and bridge geometry is fully operational.</span>
+              <span><strong style="color:var(--text-100);">AI Worker Architecture:</strong> Heavy computer vision (YOLO, OCR) is isolated in a separate container/service to prevent blocking the main FastAPI event loop.</span>
             </div>
             <div style="display:flex;gap:8px;align-items:flex-start;padding:6px 0;border-bottom:1px solid var(--border);">
               <span style="color:var(--green);margin-top:2px;">●</span>
-              <span><strong style="color:var(--text-100);">SPA Architecture:</strong> Hash-based router — Cesium map initializes once and is toggled via CSS to preserve GPU state across navigation.</span>
-            </div>
-            <div style="display:flex;gap:8px;align-items:flex-start;padding:6px 0;border-bottom:1px solid var(--border);">
-              <span style="color:var(--amber);margin-top:2px;">●</span>
-              <span><strong style="color:var(--text-100);">AI / Video Modules:</strong> All camera, ANPR, traffic flow, and incident detection systems are UI demonstrations — real integrations are planned for future development.</span>
-            </div>
-            <div style="display:flex;gap:8px;align-items:flex-start;padding:6px 0;">
-              <span style="color:var(--blue);margin-top:2px;">●</span>
-              <span><strong style="color:var(--text-100);">Ion Token:</strong> Set <code style="background:var(--bg-700);padding:1px 6px;border-radius:3px;font-size:11px;">VITE_CESIUM_ION_TOKEN</code> in <code style="background:var(--bg-700);padding:1px 6px;border-radius:3px;font-size:11px;">.env.local</code> for aerial imagery.</span>
+              <span><strong style="color:var(--text-100);">Spatial Foundation:</strong> Interactive 3D map with OSM buildings, road network, and bridge geometry is fully operational.</span>
             </div>
           </div>
         </div>
@@ -80,4 +72,52 @@ export function renderSettings() {
 
     </div>
   </div>`;
+}
+
+export function initSettings() {
+  const modeSelect = document.getElementById('ai-worker-mode');
+  const urlInput = document.getElementById('ai-worker-url');
+  const statusDiv = document.getElementById('ai-worker-status');
+  const saveBtn = document.getElementById('ai-worker-save');
+
+  // Load current settings from backend
+  fetch('http://localhost:8000/api/v1/settings/ai-worker')
+    .then(res => res.json())
+    .then(data => {
+      modeSelect.value = data.mode || 'LOCAL';
+      urlInput.value = data.url || 'http://localhost:8001';
+      
+      let statusHtml = `<div>Status: <span style="${data.connected ? 'color:var(--green);' : 'color:var(--red);'}">${data.connected ? 'CONNECTED' : 'DISCONNECTED'}</span></div>`;
+      if (data.connected) {
+        statusHtml += `<div>Device: <span style="color:var(--cyan);">${(data.device || '').toUpperCase()}</span></div>`;
+        if (data.gpu) {
+          statusHtml += `<div>GPU: <span style="color:var(--text-100);">${data.gpu}</span></div>`;
+        }
+        statusHtml += `<div>Models: <span style="${data.models_loaded ? 'color:var(--green);' : 'color:var(--amber);'}">${data.models_loaded ? 'LOADED' : 'NOT LOADED'}</span></div>`;
+      }
+      statusDiv.innerHTML = statusHtml;
+    })
+    .catch(err => {
+      statusDiv.innerHTML = `<div>Status: <span style="color:var(--red);">API UNREACHABLE</span></div>`;
+    });
+
+  saveBtn.addEventListener('click', () => {
+    saveBtn.innerText = 'Saving...';
+    fetch('http://localhost:8000/api/v1/settings/ai-worker', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        mode: modeSelect.value,
+        url: urlInput.value
+      })
+    })
+    .then(res => res.json())
+    .then(() => {
+      saveBtn.innerText = 'Saved!';
+      setTimeout(() => {
+        saveBtn.innerText = 'Save & Apply';
+        initSettings(); // Reload to fetch connection status
+      }, 1000);
+    });
+  });
 }
