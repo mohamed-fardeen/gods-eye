@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Secrets / local configuration
+.env
+.env.*
+!.env.example
+
+# Runtime outputs
+outputs/
+logs/
+*.log
+
+# Local media / test recordings
+*.mp4
+*.avi
+*.mov
+*.mkv
+
+# Python/tool caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.cache/
