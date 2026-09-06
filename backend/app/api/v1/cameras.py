@@ -26,7 +26,9 @@ def register_camera_session(req: RegisterCameraRequest, db: Session = Depends(ge
         session_id=session_id,
         name=req.name,
         device_type="MOBILE_BROWSER",
-        status="CONNECTING"
+        status="CONNECTING",
+        latitude=req.latitude,
+        longitude=req.longitude
     )
     
     db.add(db_session)
@@ -48,7 +50,9 @@ def get_live_sessions(db: Session = Depends(get_db)):
         "session_id": s.session_id,
         "name": s.name,
         "status": s.status,
-        "connected_at": s.connected_at
+        "connected_at": s.connected_at,
+        "latitude": s.latitude,
+        "longitude": s.longitude
     } for s in sessions]
 
 

@@ -101,10 +101,20 @@ export function initMobileCamera() {
 
       // 2. Register Session with Backend
       const backendUrl = (import.meta.env.VITE_BACKEND_URL || '').replace(/\/$/, '');
+      // Parse location if available
+      let lat = null;
+      let lng = null;
+      const locText = document.getElementById('location-display').innerText;
+      if (locText.includes('Lat:')) {
+        const parts = locText.split(',');
+        lat = parseFloat(parts[0].replace('Lat:', '').trim());
+        lng = parseFloat(parts[1].replace('Lng:', '').trim());
+      }
+
       const response = await fetch(`${backendUrl}/api/v1/cameras/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: camName })
+        body: JSON.stringify({ name: camName, latitude: lat, longitude: lng })
       });
       
       if (!response.ok) throw new Error('Failed to register camera session on backend.');

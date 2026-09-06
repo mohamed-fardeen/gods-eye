@@ -248,6 +248,38 @@ export function renderDigitalTwin() {
 
 // Keeping this to prevent crashes when other files try to import it.
 // Real event wiring can happen here later.
-export function initMapOverlayEvents(viewer, layerManager) {
-  // Empty, wiring is mocked for UI demo
+// Real event wiring can happen here later.
+export async function initMapOverlayEvents(viewer, layerManager) {
+  try {
+    const backendUrl = (import.meta.env.VITE_BACKEND_URL || '').replace(/\/$/, '');
+    const response = await fetch(`${backendUrl}/api/v1/cameras/sessions`);
+    if (response.ok) {
+      const sessions = await response.json();
+      sessions.forEach(session => {
+        if (session.latitude && session.longitude) {
+          viewer.entities.add({
+            id: `cam-${session.session_id}`,
+            position: Cesium.Cartesian3.fromDegrees(session.longitude, session.latitude, 50), // 50m above ground
+            billboard: {
+              image: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSIjM2I4MmY2IiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMiI+PHBhdGggZD0iTTIzIDE5YTIgMiAwIDAgMS0yIDJIMUMzYTIgMiAwIDAgMSAxIDE5VjhhMiAyIDAgMCAxIDItMmg0bDItM2g2bDIgM2g0YTIgMiAwIDAgMSAyIDJ6Ii8+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMyIgcj0iNCIvPjwvc3ZnPg==',
+              scale: 1.5,
+              verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+            },
+            label: {
+              text: `CAM-${session.session_id.substring(0, 4).toUpperCase()} (LIVE)`,
+              font: 'bold 12pt sans-serif',
+              style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+              fillColor: Cesium.Color.WHITE,
+              outlineColor: Cesium.Color.BLACK,
+              outlineWidth: 2,
+              verticalOrigin: Cesium.VerticalOrigin.TOP,
+              pixelOffset: new Cesium.Cartesian2(0, 10),
+            }
+          });
+        }
+      });
+    }
+  } catch(e) {
+    console.error("Failed to fetch cameras for map", e);
+  }
 }
