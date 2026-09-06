@@ -1,4 +1,5 @@
 import { flyToLandmark } from "../cesium/camera.js";
+import * as Cesium from "cesium";
 
 export function renderDigitalTwin() {
   return `
