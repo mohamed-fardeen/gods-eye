@@ -7,8 +7,9 @@ import { renderPlateSearch } from './pages/PlateSearch.js';
 import { renderTraffic } from './pages/Traffic.js';
 import { renderIncidents } from './pages/Incidents.js';
 import { renderCameraManagement } from './pages/CameraManagement.js';
-import { renderSettings } from './pages/Settings.js';
+import { renderSettings, initSettings } from './pages/Settings.js';
 import { renderMobileCamera, initMobileCamera } from './pages/MobileCamera.js';
+import { renderOcrTest, initOcrTest } from './pages/OcrTest.js';
 
 // Reports page
 function renderReports() {
@@ -108,6 +109,11 @@ const ROUTES = {
     title: 'ADD CAMERA',
     subtitle: 'Use mobile phone as CCTV',
   },
+  '#/ocrtest': {
+    render: renderOcrTest,
+    title: 'AI WORKER TEST',
+    subtitle: 'Test pipeline inference accuracy',
+  },
 };
 
 class Router {
@@ -172,6 +178,10 @@ class Router {
         initMobileCamera();
       } else if (hash === '#/cameras') {
         initCameras();
+      } else if (hash === '#/settings') {
+        initSettings();
+      } else if (hash === '#/ocrtest') {
+        initOcrTest();
       }
     }
   }

@@ -12,12 +12,16 @@ from app.api.v1 import (
     observations,
     watchlist,
     pipeline,
+    ocrtest,
+    settings_api,
 )
 
 api_router = APIRouter()
 
 # ── System ──────────────────────────────────────────────────────────────────
 api_router.include_router(system.router,         prefix="/system",       tags=["System"])
+api_router.include_router(settings_api.router,   prefix="/settings",     tags=["Settings"])
+api_router.include_router(ocrtest.router,        prefix="/ocrtest",      tags=["OCR Testing"])
 
 # ── ANPR Core (Phase 2) ─────────────────────────────────────────────────────
 api_router.include_router(observations.router,   prefix="/observations", tags=["Observations"])

@@ -10,3 +10,4 @@ from app.models.detection import Detection
 from app.models.event import Event
 from app.models.observation import Observation
 from app.models.watchlist import WatchlistEntry
+from app.models.system_settings import SystemSettings
