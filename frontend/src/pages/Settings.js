@@ -23,13 +23,13 @@ export function renderSettings() {
           <div style="margin-bottom: 12px;">
             <label style="font-size:12px;color:var(--text-muted);display:block;margin-bottom:4px;">Inference Mode</label>
             <select id="ai-worker-mode" class="select-input" style="width:100%;">
-              <option value="LOCAL">LOCAL (Docker AI Worker)</option>
-              <option value="REMOTE">REMOTE (GPU Provider)</option>
+              <option value="LOCAL">LOCAL (Run on this computer)</option>
+              <option value="REMOTE" disabled>REMOTE (Cloud GPU - Coming Later)</option>
             </select>
           </div>
-          <div style="margin-bottom: 12px;">
+          <div id="ai-worker-url-container" style="margin-bottom: 12px; display: none;">
             <label style="font-size:12px;color:var(--text-muted);display:block;margin-bottom:4px;">AI Worker URL</label>
-            <input id="ai-worker-url" type="text" class="search-input" style="width:100%;" placeholder="http://ai-worker:8001">
+            <input id="ai-worker-url" type="text" class="search-input" style="width:100%;" placeholder="http://127.0.0.1:8001">
           </div>
           <div style="display:flex; justify-content:space-between; align-items:center;">
             <div id="ai-worker-status" style="font-size:12px;display:flex;flex-direction:column;gap:4px;">
