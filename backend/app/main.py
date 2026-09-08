@@ -70,24 +70,7 @@ async def startup_event():
     except Exception as exc:
         logger.warning("Could not load watchlist from DB: %s", exc)
 
-    # ── 3. Wire pipeline_manager ──────────────────────────────────────────────
-    try:
-        from app.services.pipeline_manager import pipeline_manager
-        from app.api.v1.ws import dashboard_manager
-        from app.services.observation_service import set_broadcast_hook
-
-        loop = asyncio.get_event_loop()
-        pipeline_manager.set_db_factory(get_db)
-        pipeline_manager.set_broadcast_hook(dashboard_manager.broadcast)
-        pipeline_manager.set_event_loop(loop)
-        set_broadcast_hook(
-            lambda event: asyncio.run_coroutine_threadsafe(
-                dashboard_manager.broadcast(event), loop
-            )
-        )
-        logger.info("Pipeline manager wired to DB + WebSocket broadcaster")
-    except Exception as exc:
-        logger.error("Failed to wire pipeline manager: %s", exc)
+    # ── 3. (Removed pipeline manager wiring, now handled by ai-worker) ────────
 
     # ── 4. Initialize Road Transition Graph ───────────────────────────────────
     try:
@@ -104,12 +87,7 @@ async def startup_event():
 
 @app.on_event("shutdown")
 async def shutdown_event():
-    logger.info("Shutting down %s — stopping all pipelines...", settings.PROJECT_NAME)
-    try:
-        from app.services.pipeline_manager import pipeline_manager
-        pipeline_manager.stop_all()
-    except Exception as exc:
-        logger.error("Pipeline shutdown error: %s", exc)
+    logger.info("Shutting down %s", settings.PROJECT_NAME)
 
 
 @app.get("/")

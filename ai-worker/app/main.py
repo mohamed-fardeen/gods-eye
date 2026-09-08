@@ -22,6 +22,11 @@ async def lifespan(app: FastAPI):
     print("Models loaded successfully.")
     yield
     print("Shutting down AI worker...")
+    try:
+        from app.pipeline_manager import pipeline_manager
+        pipeline_manager.stop_all()
+    except Exception as e:
+        print(f"Error stopping pipelines: {e}")
     pipeline = None
 
 app = FastAPI(title="AI Worker - Traffic Vision", lifespan=lifespan)
@@ -72,3 +77,30 @@ async def run_inference(file: UploadFile = File(...)):
     results = pipeline.process_image(frame)
     
     return results
+
+class PipelineStartRequest(BaseModel):
+    camera_id: str
+    source: str
+    watchlist_entries: list = []
+    start_timestamp: float | None = None
+
+@app.post("/v1/pipelines/start")
+def start_pipeline(req: PipelineStartRequest):
+    from app.pipeline_manager import pipeline_manager
+    success = pipeline_manager.start_pipeline(
+        req.camera_id, 
+        req.source, 
+        req.watchlist_entries,
+        start_timestamp=req.start_timestamp
+    )
+    if not success:
+        raise HTTPException(status_code=400, detail="Pipeline already running or could not start")
+    return {"status": "started", "camera_id": req.camera_id}
+
+@app.post("/v1/pipelines/stop/{camera_id}")
+def stop_pipeline(camera_id: str):
+    from app.pipeline_manager import pipeline_manager
+    success = pipeline_manager.stop_pipeline(camera_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Pipeline not found")
+    return {"status": "stopped", "camera_id": camera_id}

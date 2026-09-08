@@ -14,6 +14,7 @@ from app.api.v1 import (
     pipeline,
     ocrtest,
     settings_api,
+    simulation,
 )
 
 api_router = APIRouter()
@@ -22,6 +23,7 @@ api_router = APIRouter()
 api_router.include_router(system.router,         prefix="/system",       tags=["System"])
 api_router.include_router(settings_api.router,   prefix="/settings",     tags=["Settings"])
 api_router.include_router(ocrtest.router,        prefix="/ocrtest",      tags=["OCR Testing"])
+api_router.include_router(simulation.router,     prefix="/simulation",   tags=["Simulation"])
 
 # ── ANPR Core (Phase 2) ─────────────────────────────────────────────────────
 api_router.include_router(observations.router,   prefix="/observations", tags=["Observations"])
