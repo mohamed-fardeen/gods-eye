@@ -239,7 +239,105 @@ export function initMobileCamera() {
     }
   }
 
+  let anprInterval = null;
+
+  function startANPRProcessing() {
+    if (anprInterval) return;
+    
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Add result overlay div if it doesn't exist
+    let overlay = document.getElementById('anpr-mobile-overlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'anpr-mobile-overlay';
+      overlay.style.position = 'absolute';
+      overlay.style.bottom = '10px';
+      overlay.style.left = '10px';
+      overlay.style.right = '10px';
+      overlay.style.backgroundColor = 'rgba(0,0,0,0.7)';
+      overlay.style.color = 'var(--green)';
+      overlay.style.padding = '8px';
+      overlay.style.borderRadius = '4px';
+      overlay.style.fontFamily = 'monospace';
+      overlay.style.fontSize = '14px';
+      overlay.style.fontWeight = 'bold';
+      overlay.style.zIndex = '10';
+      overlay.innerText = 'ANPR Active...';
+      
+      const videoContainer = videoPreview.parentElement;
+      videoContainer.appendChild(overlay);
+    }
+    
+      let annotatedImage = document.getElementById('anpr-annotated-image');
+      if (!annotatedImage) {
+        annotatedImage = document.createElement('img');
+        annotatedImage.id = 'anpr-annotated-image';
+        annotatedImage.style.position = 'absolute';
+        annotatedImage.style.top = '0';
+        annotatedImage.style.left = '0';
+        annotatedImage.style.width = '100%';
+        annotatedImage.style.height = '100%';
+        annotatedImage.style.objectFit = 'cover';
+        annotatedImage.style.pointerEvents = 'none';
+        videoContainer.appendChild(annotatedImage);
+      }
+      
+      anprInterval = setInterval(() => {
+        if (!videoPreview.videoWidth || !videoPreview.videoHeight) return;
+        
+        canvas.width = videoPreview.videoWidth;
+        canvas.height = videoPreview.videoHeight;
+        ctx.drawImage(videoPreview, 0, 0, canvas.width, canvas.height);
+        
+        canvas.toBlob((blob) => {
+        if (!blob) return;
+        const formData = new FormData();
+        formData.append('file', blob, 'frame.jpg');
+        
+        const backendUrl = (import.meta.env.VITE_BACKEND_URL || '').replace(/\/$/, '');
+        fetch(`${backendUrl}/api/v1/ocrtest`, {
+          method: 'POST',
+          body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.processed_image_base64) {
+             annotatedImage.src = 'data:image/jpeg;base64,' + data.processed_image_base64;
+          }
+          if (data && data.ocr_results && data.ocr_results.length > 0) {
+            console.log("ANPR Results:", data.ocr_results);
+            const topResult = data.ocr_results[0];
+            overlay.innerText = `PLATE: ${topResult.text} (${(topResult.confidence * 100).toFixed(1)}%)`;
+          } else {
+            overlay.innerText = 'No plates detected in frame';
+          }
+        })
+        .catch(err => {
+          console.error("ANPR Error:", err);
+          overlay.innerText = 'ANPR connection error';
+        });
+      }, 'image/jpeg', 0.6);
+      
+    }, 300); // Process ~3 frames per second for tracking
+  }
+
+  // Start ANPR when camera starts
+  videoPreview.addEventListener('play', () => {
+    startANPRProcessing();
+  });
+
   function stopCamera() {
+    if (anprInterval) {
+      clearInterval(anprInterval);
+      anprInterval = null;
+    }
+    const overlay = document.getElementById('anpr-mobile-overlay');
+    if (overlay) overlay.remove();
+    const annotatedImage = document.getElementById('anpr-annotated-image');
+    if (annotatedImage) annotatedImage.remove();
+
     if (localStream) {
       localStream.getTracks().forEach(track => track.stop());
       localStream = null;

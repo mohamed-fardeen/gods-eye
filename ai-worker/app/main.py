@@ -8,7 +8,7 @@ import cv2
 import numpy as np
 from contextlib import asynccontextmanager
 
-from app.pipeline import TrafficVisionPipeline
+from app.traffic_vision_pipeline import TrafficVisionPipeline
 
 # Global pipeline instance
 pipeline: TrafficVisionPipeline = None
@@ -22,6 +22,8 @@ async def lifespan(app: FastAPI):
     print("Models loaded successfully.")
     yield
     print("Shutting down AI worker...")
+    if pipeline:
+        pipeline.cleanup()
     pipeline = None
 
 app = FastAPI(title="AI Worker - Traffic Vision", lifespan=lifespan)

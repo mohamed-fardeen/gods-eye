@@ -27,7 +27,7 @@ echo [INFO] Installing requirements...
 python -m pip install --upgrade pip >nul
 pip install -r requirements.txt
 
-REM Run the FastAPI worker
+REM Run the FastAPI worker (no --reload to prevent CUDA multiprocessing conflicts)
 echo [INFO] Starting FastAPI server on port 8001...
 echo [INFO] The server will detect your GPU automatically.
-uvicorn app.main:app --host 0.0.0.0 --port 8001 --reload
+uvicorn app.main:app --host 0.0.0.0 --port 8001

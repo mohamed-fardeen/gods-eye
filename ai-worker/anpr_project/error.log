@@ -1,0 +1,25 @@
+======================================================================
+REALTIME ANPR V2 — Phase I (Low Latency)
+======================================================================
+Source             : data/test/indian_test.mp4
+Vehicle model      : /mnt/c/Users/imdad/Downloads/anpr_project/yolov8n.pt
+Plate model        : /mnt/c/Users/imdad/Downloads/anpr_project/models/plate_detector/weights/best.pt
+Device             : 0
+Vehicle imgsz      : 640
+Plate imgsz        : 416
+Plate cadence      : 6
+Plate track cooldown: 0
+Min vehicle W/H    : 60/40
+OCR spacing        : 8
+Plate batch        : 8
+======================================================================
+  vehicle dtype: torch.float16
+  plate dtype  : torch.float16
+Traceback (most recent call last):
+  File "/mnt/c/Users/imdad/Downloads/anpr_project/app/realtime/realtime_anpr.py", line 1157, in <module>
+    run(parse_args())
+  File "/mnt/c/Users/imdad/Downloads/anpr_project/app/realtime/realtime_anpr.py", line 196, in run
+    ocr_client = OCRClient()
+  File "/mnt/c/Users/imdad/Downloads/anpr_project/app/realtime/ocr_worker.py", line 33, in __init__
+    self.sock.connect((host, port))
+TimeoutError: [Errno 110] Connection timed out

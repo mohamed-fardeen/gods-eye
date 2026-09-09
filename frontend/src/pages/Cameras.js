@@ -34,18 +34,28 @@ export function initCameras() {
     container.innerHTML = '';
     const sessions = await cameraStreamManager.getLiveSessions();
     
-    if (sessions.length === 0) {
+    // Inject our simulated camera for testing
+    const simulatedSession = {
+      session_id: 'SIM_TEST_01',
+      name: 'License Plate Detection Test (Simulated)'
+    };
+    const allSessions = [simulatedSession, ...sessions];
+    
+    if (allSessions.length === 0) {
       noCamerasMsg.style.display = 'block';
       return;
     }
 
     noCamerasMsg.style.display = 'none';
 
-    sessions.forEach(session => {
+    allSessions.forEach(session => {
       const camDiv = document.createElement('div');
-      const shortId = `CAM-${session.session_id.substring(0, 4).toUpperCase()}`;
+      camDiv.style.cursor = 'pointer'; // Make it look clickable
+      const isSimulated = session.session_id === 'SIM_TEST_01';
+      const shortId = isSimulated ? 'SIM-TEST' : `CAM-${session.session_id.substring(0, 4).toUpperCase()}`;
+      
       camDiv.innerHTML = `
-        <div style="background: rgba(12,17,32,0.9); border: 1px solid rgba(255,255,255,0.07); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column;">
+        <div class="camera-card" style="background: rgba(12,17,32,0.9); border: 1px solid rgba(255,255,255,0.07); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; transition: transform 0.2s; ">
           <div style="padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); background: rgba(0,0,0,0.2);">
             <div style="display: flex; flex-direction: column;">
               <span style="font-size:12px; font-weight:700; color:#fff;">${shortId}</span>
@@ -57,14 +67,29 @@ export function initCameras() {
             </div>
           </div>
           <div style="aspect-ratio: 16/9; background: rgba(0,0,0,0.8); position: relative;">
-            <video id="video-${session.session_id}" autoplay muted playsinline style="width: 100%; height: 100%; object-fit: cover;"></video>
+            ${isSimulated ? 
+              `<video id="video-${session.session_id}" src="/videos/license_plate_test.mp4" loop muted autoplay playsinline style="width: 100%; height: 100%; object-fit: cover;"></video>` : 
+              `<video id="video-${session.session_id}" autoplay muted playsinline style="width: 100%; height: 100%; object-fit: cover;"></video>`
+            }
           </div>
         </div>
       `;
+      
+      // Navigate to detailed view on click
+      camDiv.addEventListener('click', () => {
+        window.location.hash = `#/camera-detail?id=${session.session_id}`;
+      });
+
+      // Hover effect
+      camDiv.addEventListener('mouseenter', () => { camDiv.firstElementChild.style.border = '1px solid var(--primary-color)'; });
+      camDiv.addEventListener('mouseleave', () => { camDiv.firstElementChild.style.border = '1px solid rgba(255,255,255,0.07)'; });
+
       container.appendChild(camDiv);
 
-      const videoEl = document.getElementById(`video-${session.session_id}`);
-      cameraStreamManager.connectToSession(session.session_id, videoEl);
+      if (!isSimulated) {
+        const videoEl = document.getElementById(`video-${session.session_id}`);
+        cameraStreamManager.connectToSession(session.session_id, videoEl);
+      }
     });
   }
 

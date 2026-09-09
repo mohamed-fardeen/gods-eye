@@ -1,0 +1,184 @@
+======================================================================
+REALTIME ANPR V2 — Phase F
+======================================================================
+Source             : /mnt/c/Users/imdad/Downloads/License Plate Detection Test.mp4
+Vehicle model      : /mnt/c/Users/imdad/Downloads/anpr_project/yolov8n.pt
+Plate model        : /mnt/c/Users/imdad/Downloads/anpr_project/models/plate_detector/weights/best.pt
+Device             : 0
+Vehicle imgsz      : 512
+Plate imgsz        : 416
+Plate cadence      : 12
+Plate track cooldown: 0
+Min vehicle W/H    : 60/40
+OCR spacing        : 8
+Plate batch        : 8
+======================================================================
+Warming up GPU...
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+Capture connected: /mnt/c/Users/imdad/Downloads/License Plate Detection Test.mp4
+Capture read failed; reconnecting...
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+Capture connected: /mnt/c/Users/imdad/Downloads/License Plate Detection Test.mp4
+Warmup complete.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+Frame 2972 | FPS 1.05 | veh 284ms | plate 0ms | wall 285ms | tracks 20 | plt_calls 0 | dropped 3037WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+Capture read failed; reconnecting...
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+Capture connected: /mnt/c/Users/imdad/Downloads/License Plate Detection Test.mp4
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+Frame 4659 | FPS 1.42 | veh 251ms | plate 119ms | wall 372ms | tracks 25 | plt_calls 6 | dropped 4717WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+Capture read failed; reconnecting...
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+Capture connected: /mnt/c/Users/imdad/Downloads/License Plate Detection Test.mp4
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+Frame 6660 | FPS 1.46 | veh 248ms | plate 214ms | wall 464ms | tracks 21 | plt_calls 18 | dropped 7030WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+Capture read failed; reconnecting...
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+Capture connected: /mnt/c/Users/imdad/Downloads/License Plate Detection Test.mp4
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+Frame 8083 | FPS 1.69 | veh 239ms | plate 183ms | wall 424ms | tracks 20 | plt_calls 21 | dropped 8144WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+Capture read failed; reconnecting...
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+Capture connected: /mnt/c/Users/imdad/Downloads/License Plate Detection Test.mp4
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+Frame 9000 | FPS 1.88 | veh 236ms | plate 161ms | wall 398ms | tracks 23 | plt_calls 24 | dropped 9198WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+Frame 10063 | FPS 2.08 | veh 233ms | plate 134ms | wall 369ms | tracks 24 | plt_calls 24 | dropped 10105WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+Performance mode 30s limit reached.
+
+
+======================================================================
+REAL-TIME ANPR PERFORMANCE — Phase F Wall-Clock Report
+======================================================================
+Input FPS          : 30.0
+Processing FPS     : 2.16
+Realtime ratio     : 0.07x
+Average frame age  : 0.0 ms
+
+Component                        Average ms
+--------------------------------------------
+capture read                           0.01
+capture sleep/wait                     0.00
+OCR check                              0.01
+vehicle tracking                     234.70
+vehicle result processing              1.16
+plate batch construction               0.01
+plate prediction                     124.05
+plate result processing                0.21
+OCR submission                         0.00
+drawing/display                        0.00
+other                                  0.01
+TOTAL WALL TIME                      360.20
+
+--- Vehicle Inference ---
+  Vehicle preprocess ms  : 2.71
+  Vehicle inference ms   : 20.22
+  Vehicle postprocess ms : 7.53
+  Vehicle total wall ms  : 234.70
+
+--- Plate Inference ---
+  Plate predict calls    : 24
+  Plate images submitted : 157
+  Avg plate batch size   : 6.54
+  Plate pre-proc ms/call : 4.47
+  Plate infer ms/call    : 25.08
+  Plate post-proc ms/call: 6.18
+  Plate total wall ms    : 124.05
+
+--- Phase F Plate Eligibility ---
+  Tracks considered      : 175
+  Tracks submitted       : 157
+  Skipped (cooldown)     : 0
+  Skipped (size)         : 18
+
+--- OCR ---
+  OCR submitted          : 18
+  OCR completed          : 0
+  OCR dropped            : 0
+
+--- Capture & Frames ---
+  Frames captured        : 10573
+  Frames processed       : 65
+  Capture dropped        : 10506
+  Average lag            : 0.0 ms
+
+--- Tracking ---
+  Active tracks          : 18
+  Track creations        : 18
+  ID disappearances      : 0
+
+GPU VRAM used          : 0.28 GB
+======================================================================

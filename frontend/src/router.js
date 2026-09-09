@@ -10,6 +10,7 @@ import { renderCameraManagement } from './pages/CameraManagement.js';
 import { renderSettings, initSettings } from './pages/Settings.js';
 import { renderMobileCamera, initMobileCamera } from './pages/MobileCamera.js';
 import { renderOcrTest, initOcrTest } from './pages/OcrTest.js';
+import { renderCameraDetail, initCameraDetail } from './pages/CameraDetail.js';
 
 // Reports page
 function renderReports() {
@@ -114,6 +115,11 @@ const ROUTES = {
     title: 'AI WORKER TEST',
     subtitle: 'Test pipeline inference accuracy',
   },
+  '#/camera-detail': {
+    render: renderCameraDetail,
+    title: 'CAMERA DETAIL',
+    subtitle: 'Live Analysis & Visualization',
+  },
 };
 
 class Router {
@@ -138,7 +144,8 @@ class Router {
   }
 
   handleRouteChange() {
-    const hash = window.location.hash || '#/';
+    const fullHash = window.location.hash || '#/';
+    const hash = fullHash.split('?')[0];
     const route = ROUTES[hash] || ROUTES['#/'];
 
     updateSidebarActive(hash);
@@ -178,6 +185,8 @@ class Router {
         initMobileCamera();
       } else if (hash === '#/cameras') {
         initCameras();
+      } else if (hash.startsWith('#/camera-detail')) {
+        initCameraDetail();
       } else if (hash === '#/settings') {
         initSettings();
       } else if (hash === '#/ocrtest') {

@@ -1,0 +1,13 @@
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.pt
+*.pth
+*.mp4
+*.avi
+outputs/
+data/
+models/
+paddle_log.txt
+stderr_only.log
