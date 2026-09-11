@@ -24,13 +24,17 @@ Because the dependencies have shifted, you must update both environments.
    ```
 
 ### AI Worker Setup
-1. Open a **new** terminal and navigate to the `ai-worker/` directory.
-2. Activate your ai-worker virtual environment.
-3. Install the updated dependencies (now including `httpx` and `rapidfuzz`):
+1. **Critical:** Place the fine-tuned model weights in their respective directories before starting:
+   - YOLOv8 Plate Detector: Place `best.pt` inside `ai-worker/models/plate_detector/weights/`
+   - PaddleOCR: Place `best_accuracy.pdparams` inside `ai-worker/models/ocr_ppocrv6_small/`
+   *(These are currently untracked to keep the repo clean. Ask your teammate to provide them).*
+2. Open a **new** terminal and navigate to the `ai-worker/` directory.
+3. Activate your ai-worker virtual environment.
+4. Install the updated dependencies (now including `httpx` and `rapidfuzz`):
    ```bash
    pip install -r requirements.txt
    ```
-4. Start the AI Worker:
+5. Start the AI Worker:
    ```bash
    uvicorn app.main:app --reload --port 8001
    ```

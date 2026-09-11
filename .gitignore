@@ -1,10 +1,30 @@
-deep-research-report.md
+implementation_plan.md
 SIH26127_Solution_Architecture.txt
 
 # Python caches
 __pycache__/
 *.pyc
 
+# Virtual environments
+venv/
+env/
+.venv/
+
+# AI Worker Models & Weights
+*.pt
+*.onnx
+*.pdparams
+*.pth
+*.engine
+
+# AI Worker Data & Outputs
+data/
+outputs/
+output/
+*.db
+*.class
+
 # Cache/Data files
 *.graphml
 temp/
+.vite/
